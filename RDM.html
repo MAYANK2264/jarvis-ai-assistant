@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JARVIS - AI Virtual Assistant</title>
+</head>
+<body>
+
+    <h1>🤖 JARVIS - AI Virtual Assistant (Offline + Voice Controlled)</h1>
+
+    <p>
+        JARVIS is a personal AI assistant built using Python that interacts through <strong>voice commands</strong> and performs a wide variety of tasks—entirely <strong>offline</strong> with an optional <strong>online chatbot fallback</strong>. Inspired by Iron Man's JARVIS, this assistant can speak, listen, understand, and perform actions like file operations, system commands, opening apps, answering questions, and more.
+    </p>
+
+    <h2>🎯 Features</h2>
+    <ul>
+        <li>✅ Voice-controlled interaction</li>
+        <li>✅ Offline AI chatbot (Mistral 7B via GPT4All)</li>
+        <li>✅ Text-to-speech and speech recognition</li>
+        <li>✅ File manager: Create, delete, rename folders/files</li>
+        <li>✅ Open installed applications</li>
+        <li>✅ System info (battery, volume, brightness, etc.)</li>
+        <li>✅ Google search via browser</li>
+        <li>✅ Shutdown, restart commands</li>
+        <li>✅ Easy modular design — new features can be plugged in easily</li>
+    </ul>
+
+    <h2>🧠 Tech Stack</h2>
+    <ul>
+        <li>Python 3.10+</li>
+        <li><a href="https://github.com/nomic-ai/gpt4all">GPT4All</a> for offline AI</li>
+        <li>speech_recognition for voice input</li>
+        <li>pyttsx3 for voice output</li>
+        <li>pyautogui, psutil, os, and more for system commands</li>
+        <li>Modular architecture using a <code>commands</code> folder</li>
+    </ul>
+
+    <h2>🗂️ Folder Structure</h2>
+    <pre>
+        JarvisAI/
+        │
+        ├── main.py                      # Entry point
+        ├── requirements.txt             # All dependencies
+        ├── .env                         # (Optional) for OpenAI API
+        │
+        ├── commands/
+        │   ├── ai_chatbot.py            # Online GPT-based AI chatbot
+        │   ├── offline_ai.py           # Offline chatbot with Mistral
+        │   ├── file_manager.py         # Folder/file management
+        │   ├── open_apps.py            # Open apps based on voice
+        │   ├── system_control.py       # Shutdown, volume, brightness, etc.
+        │   ├── system_info.py          # System info fetcher
+        │   └── web_search.py           # Google search via browser
+        │
+        ├── speech/
+        │   ├── speech_recognition.py   # Voice input
+        │   └── text_to_speech.py       # Voice output
+    </pre>
+
+    <h2>🛠️ Setup Instructions</h2>
+
+    <h3>🔹 Step 1: Clone the repository</h3>
+    <pre><code>
+        git clone https://github.com/your-username/jarvis-ai-assistant.git
+        cd jarvis-ai-assistant
+    </code></pre>
+
+    <h3>🔹 Step 2: Create & activate virtual environment</h3>
+    <pre><code>
+        python -m venv my_jarvis
+        my_jarvis\Scripts\activate
+    </code></pre>
+
+    <h3>🔹 Step 3: Install dependencies</h3>
+    <pre><code>
+        pip install -r requirements.txt
+    </code></pre>
+
+    <h3>🔹 Step 4: Download GPT4All Offline Model (Optional for offline AI)</h3>
+    <ul>
+        <li>Go to: <a href="https://gpt4all.io/index.html">GPT4All</a></li>
+        <li>Download the <strong>Mistral-7B-Instruct</strong> model (gguf version)</li>
+        <li>Place it in the following directory: <code>C:\Users\<your_username>\AppData\Local\nomic.ai\GPT4All\</code></li>
+        <li>Example file path: <code>C:\Users\kmmay\AppData\Local\nomic.ai\GPT4All\mistral-7b-instruct-v0.1.Q4_0.gguf</code></li>
+    </ul>
+
+    <h2>🚀 Running the Assistant</h2>
+    <p>In your terminal:</p>
+    <pre><code>
+        python main.py
+    </code></pre>
+    <p>Then just speak a command like:</p>
+    <ul>
+        <li>“Open Notepad”</li>
+        <li>“Create folder test”</li>
+        <li>“Delete folder test”</li>
+        <li>“What is the battery status”</li>
+        <li>“Who is the first person to walk on the moon”</li>
+        <li>“Tell me a joke”</li>
+        <li>“Search Python tutorials”</li>
+        <li>“Shutdown the system”</li>
+        <li>“Stop” (to exit)</li>
+    </ul>
+
+    <h2>🧠 Switching Between Online and Offline AI</h2>
+    <ul>
+        <li><strong>Offline AI</strong> is used by default using GPT4All.</li>
+        <li>To use <strong>OpenAI GPT-3.5/4 online</strong>, replace this line in <code>main.py</code>:
+            <pre><code>from commands.offline_ai import chat_with_gpt</code></pre>
+            <strong>with</strong>
+            <pre><code>from commands.ai_chatbot import chat_with_gpt</code></pre>
+        </li>
+        <li>Also, set your OpenAI API key in a <code>.env</code> file:
+            <pre><code>OPENAI_API_KEY=your_api_key_here</code></pre>
+        </li>
+    </ul>
+
+    <h2>📌 Dependencies</h2>
+    <pre><code>
+        gpt4all
+        pyttsx3
+        speechrecognition
+        pyaudio
+        psutil
+        requests
+        keyboard
+        python-dotenv
+    </code></pre>
+
+    <h2>🛡️ Disclaimer</h2>
+    <p>This assistant can perform file operations and system commands. Use with caution to avoid unintended file deletion or system shutdown.</p>
+
+    <h2>📣 Contribute</h2>
+    <p>Have ideas to make it better? Feel free to open an issue or a pull request.</p>
+
+    <h2>📃 License</h2>
+    <p>MIT License</p>
+
+    <h2>✨ Author</h2>
+    <p>Built with ❤️ by MAYANK CHOUHAN </p>
+
+</body>
+</html>
