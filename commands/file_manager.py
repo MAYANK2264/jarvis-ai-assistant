@@ -1,5 +1,6 @@
 import os
 import shutil
+from datetime import datetime
 
 # Folder where deleted files/folders will be stored
 RECYCLE_BIN = ".recycle_bin"
@@ -75,3 +76,42 @@ def restore_item(item_name):
         return f"'{item_name}' restored successfully."
     except Exception as e:
         return f"Failed to restore item: {e}"
+
+def search_files(directory=".", name=None, file_type=None, after_date=None):
+    # List to store matching files
+    matching_files = []
+
+    # Walk through the directory and its subdirectories
+    for root, dirs, files in os.walk(directory):
+        for file in files:
+            file_path = os.path.join(root, file)
+            
+            # Check name
+            if name and name.lower() not in file.lower():
+                continue
+
+            # Check file type (extension)
+            if file_type and not file.endswith(file_type):
+                continue
+
+            # Check modification date
+            if after_date:
+                file_mod_time = datetime.fromtimestamp(os.path.getmtime(file_path))
+                if file_mod_time < after_date:
+                    continue
+
+            # Add the matching file to the list
+            matching_files.append(file_path)
+
+    return matching_files
+
+def sort_files(files, sort_by="name", reverse=False):
+    # Sort by name, date, or size
+    if sort_by == "name":
+        return sorted(files, key=lambda x: os.path.basename(x).lower(), reverse=reverse)
+    elif sort_by == "date":
+        return sorted(files, key=lambda x: os.path.getmtime(x), reverse=reverse)
+    elif sort_by == "size":
+        return sorted(files, key=lambda x: os.path.getsize(x), reverse=reverse)
+    else:
+        return files

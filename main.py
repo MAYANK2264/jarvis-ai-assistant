@@ -10,9 +10,9 @@ from commands.system_control import (
 from commands.offline_ai import chat_with_gpt
 from commands.file_manager import (
     create_folder, delete_file_or_folder, rename_item, list_items,
-    move_item, copy_item, restore_item
+    move_item, copy_item, restore_item, search_files, sort_files
 )
-
+from datetime import datetime
 import sys
 import os
 import requests
@@ -178,6 +178,60 @@ def main():
             response = restore_item(item_name)
             print(response)
             speak(response)
+
+        elif "search files" in command.lower():
+            # Extract search parameters from the command
+            command_parts = command.lower().split()
+            name = None
+            file_type = None
+            after_date = None
+
+            # Extract search criteria from the command (e.g., name, type, date)
+            if "name" in command_parts:
+                name = command.split("name")[-1].strip()
+            if "type" in command_parts:
+                file_type = command.split("type")[-1].strip()
+            if "after" in command_parts:
+                date_str = command.split("after")[-1].strip()
+                after_date = datetime.strptime(date_str, "%Y-%m-%d")
+
+            # Perform file search
+            files_found = search_files(directory=".", name=name, file_type=file_type, after_date=after_date)
+
+            # Display the search results
+            if files_found:
+                speak(f"I found {len(files_found)} files.")
+                for file in files_found:
+                    print(file)
+                    speak(file)
+            else:
+                speak("No files found matching your criteria.")
+
+        elif "sort files" in command.lower():
+            # Extract sorting criteria
+            command_parts = command.lower().split()
+            sort_by = "name"
+            reverse = False
+
+            if "date" in command_parts:
+                sort_by = "date"
+            elif "size" in command_parts:
+                sort_by = "size"
+
+            if "desc" in command_parts or "reverse" in command_parts:
+                reverse = True
+
+            # Perform sorting
+            sorted_files = sort_files(files_found, sort_by=sort_by, reverse=reverse)
+
+            # Display sorted files
+            if sorted_files:
+                speak(f"Here are the sorted files by {sort_by}.")
+                for file in sorted_files:
+                    print(file)
+                    speak(file)
+            else:
+                speak("No files to sort.")    
 
         # --- System Control Commands ---
         elif "lock system" in command or "lock computer" in command:
