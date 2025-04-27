@@ -3,105 +3,231 @@ from speech.text_to_speech import speak
 from commands.open_apps import open_application
 from commands.system_info import get_system_info
 from commands.web_search import search_google
-from commands.system_control import shutdown, restart, set_volume, set_brightness, battery_status
-from commands.offline_ai import chat_with_gpt  # Using Offline AI
-from commands.file_manager import create_folder, delete_file_or_folder, rename_item, list_items
+from commands.system_control import (
+    shutdown, restart, set_volume, set_brightness, battery_status,
+    lock_system, toggle_wifi, toggle_airplane_mode
+)
+from commands.offline_ai import chat_with_gpt
+from commands.file_manager import (
+    create_folder, delete_file_or_folder, rename_item, list_items,
+    move_item, copy_item, restore_item
+)
 
 import sys
 import os
+import requests
+
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
+# Google API Key and Custom Search Engine ID (CX)
+API_KEY = "AIzaSyAzbZFUzk8TxSs_BtYKHWFBaYcx-WP0Vu0"
+CX = "d42f59264d68b487d"
+
+def search_google(query, search_type="web"):
+    try:
+        # Construct the Google Search API URL
+        url = f"https://www.googleapis.com/customsearch/v1?q={query}&key={API_KEY}&cx={CX}"
+
+        # Add filters based on search type (optional)
+        if search_type == "image":
+            url += "&searchType=image"
+        elif search_type == "news":
+            url += "&filter=1"
+
+        # Make the API request
+        response = requests.get(url)
+        data = response.json()
+
+        if "items" in data:
+            results = data["items"]
+            summarized_results = []
+            for item in results[:5]:  # Get top 5 results
+                summary = {
+                    "title": item["title"],
+                    "link": item["link"],
+                    "snippet": item.get("snippet", "No snippet available.")
+                }
+                summarized_results.append(summary)
+
+            safe_results = [res for res in summarized_results if "unsafe" not in res["snippet"].lower()]
+
+            # Format results for output
+            search_output = "\n".join([f"Title: {res['title']}\nLink: {res['link']}\nSnippet: {res['snippet']}\n" for res in safe_results])
+
+            if not search_output:
+                search_output = "No relevant or safe results found."
+            return search_output
+        else:
+            return "No results found."
+
+    except Exception as e:
+        return f"Error during search: {str(e)}"
+
+
 def main():
-    speak("Hello! How can I assist you?")
-    
+    speak("Hello! How can I assist you today?")
+
     while True:
+        speak("Listening...")
         command = recognize_speech()
 
         if command:
             print(f"Recognized: {command}")
             speak(f"You said: {command}")
+        else:
+            continue
 
         exit_keywords = ["exit", "quit", "stop", "goodbye"]
-        if command and any(word in command.lower() for word in exit_keywords):
+        if any(word in command.lower() for word in exit_keywords):
             speak("Goodbye! Have a nice day.")
             break
 
-        elif "open" in command:
+        # --- App and Web Commands ---
+
+        elif "open" in command.lower():
             response = open_application(command)
+            print(response)
             speak(response)
 
-        elif "search" in command:
+        elif "search" in command.lower():
             query = command.replace("search", "").strip()
-            response = search_google(query)
+            search_type = "web"  # Default search type
+
+            # Determine if it's an image or news search
+            if "image" in command.lower():
+                search_type = "image"
+            elif "news" in command.lower():
+                search_type = "news"
+
+            response = search_google(query, search_type)
+            print(response)
             speak(response)
 
-        elif "system info" in command:
+        elif "system info" in command.lower():
             response = get_system_info()
+            print(response)
             speak(response)
 
-        elif "shutdown" in command:
-            response = shutdown()
-            speak(response)
-            break
-
-        elif "restart" in command:
-            response = restart()
-            speak(response)
-            break
-
-        elif "set volume" in command:
-            level = int(command.split()[-1].replace("%", ""))  
-            response = set_volume(level)
-            speak(response)
-
-        elif "set brightness" in command:
-            level = int(command.split()[-1].replace("%", ""))  
-            response = set_brightness(level)
-            speak(response)
-
-        elif "battery status" in command:
-            response = battery_status()
-            speak(response)
-
-        elif "create folder" in command:
+        # --- File Management Commands ---
+        
+        elif "create folder" in command.lower():
             folder_name = command.replace("create folder", "").strip()
             response = create_folder(folder_name)
+            print(response)
             speak(response)
 
-        elif "delete folder" in command:
-             # Try to extract folder name after "name" or just remove known phrases
-             folder_name = command.lower().replace("delete folder", "")
-             folder_name = folder_name.replace("from my directory", "")
-             folder_name = folder_name.replace("named", "").replace("name", "").strip()
-
-             path = os.path.join(os.getcwd(), folder_name)
-             print(f"[DEBUG] Trying to delete folder at: {path}")
-             response = delete_file_or_folder(path)
-             speak(response)
-
-        elif "delete file" in command:
-            file_name = command.replace("delete file", "").strip()
-            path = os.path.join(os.getcwd(), file_name)
+        elif "delete" in command.lower():
+            path = command.replace("delete", "").strip()
             response = delete_file_or_folder(path)
+            print(response)
             speak(response)
 
-
-        elif "rename" in command:
+        elif "rename" in command.lower():
             speak("Please say the current name.")
             old = recognize_speech()
-            speak("Please say the new name.")
-            new = recognize_speech()
-            response = rename_item(old.strip(), new.strip())
-            speak(response)
+            if old:
+                speak(f"You said: {old}. Now say the new name.")
+                new = recognize_speech()
+                if new:
+                    response = rename_item(old.strip(), new.strip())
+                    print(response)
+                    speak(response)
+                else:
+                    speak("Failed to hear the new name.")
+            else:
+                speak("Failed to hear the old name.")
 
-        elif "list files" in command or "show files" in command:
+        elif "list files" in command.lower() or "show files" in command.lower():
             folder = command.replace("list files", "").replace("show files", "").strip() or "."
             response = list_items(folder)
+            print(response)
             speak(response)
 
-        # Offline AI Chatbot Integration
+        elif "move" in command.lower():
+            speak("Please say the source file or folder name.")
+            source = recognize_speech()
+            if source:
+                speak(f"You said: {source}. Now say the destination folder.")
+                destination = recognize_speech()
+                if destination:
+                    response = move_item(source.strip(), destination.strip())
+                    print(response)
+                    speak(response)
+                else:
+                    speak("Failed to hear the destination folder.")
+            else:
+                speak("Failed to hear the source.")
+
+        elif "copy" in command.lower():
+            speak("Please say the source file or folder name.")
+            source = recognize_speech()
+            if source:
+                speak(f"You said: {source}. Now say the destination folder.")
+                destination = recognize_speech()
+                if destination:
+                    response = copy_item(source.strip(), destination.strip())
+                    print(response)
+                    speak(response)
+                else:
+                    speak("Failed to hear the destination folder.")
+            else:
+                speak("Failed to hear the source.")
+
+        elif "restore" in command.lower():
+            item_name = command.replace("restore", "").strip()
+            response = restore_item(item_name)
+            print(response)
+            speak(response)
+
+        # --- System Control Commands ---
+        elif "lock system" in command or "lock computer" in command:
+            response = lock_system()
+            speak(response)
+
+        elif "turn on wifi" in command:
+            response = toggle_wifi(True)
+            speak(response)
+
+        elif "turn off wifi" in command:
+            response = toggle_wifi(False)
+            speak(response)
+
+        elif "airplane mode on" in command:
+            response = toggle_airplane_mode(True)
+            speak(response)
+
+        elif "airplane mode off" in command:
+            response = toggle_airplane_mode(False)
+            speak(response)
+
+        # --- Volume and Brightness Commands ---
+        elif "set volume" in command.lower():
+            try:
+                level = int(command.split()[-1].replace("%", ""))
+                response = set_volume(level)
+                print(response)
+                speak(response)
+            except ValueError:
+                speak("Sorry, I couldn't understand the volume level.")
+
+        elif "set brightness" in command.lower():
+            try:
+                level = int(command.split()[-1].replace("%", ""))
+                response = set_brightness(level)
+                print(response)
+                speak(response)
+            except ValueError:
+                speak("Sorry, I couldn't understand the brightness level.")
+
+        # --- Offline AI Chatbot ---
+        elif "chat" in command.lower() or "talk to" in command.lower():
+            ai_response = chat_with_gpt(command)
+            print(ai_response)
+            speak(ai_response)
+
         else:
             ai_response = chat_with_gpt(command)
+            print(ai_response)
             speak(ai_response)
 
 if __name__ == "__main__":
