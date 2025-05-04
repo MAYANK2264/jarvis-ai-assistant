@@ -1,6 +1,7 @@
 import os
 import shutil
 from datetime import datetime
+import json
 
 # Folder where deleted files/folders will be stored
 RECYCLE_BIN = ".recycle_bin"
@@ -115,3 +116,46 @@ def sort_files(files, sort_by="name", reverse=False):
         return sorted(files, key=lambda x: os.path.getsize(x), reverse=reverse)
     else:
         return files
+    
+# -- tag files --    
+TAG_FILE = "tags.json"
+
+def load_tags():
+    if os.path.exists(TAG_FILE):
+        with open(TAG_FILE, "r") as file:
+            return json.load(file)
+    return {}
+
+def save_tags(tags):
+    with open(TAG_FILE, "w") as file:
+        json.dump(tags, file, indent=4)
+
+def tag_file(file_path, tag):
+    file_path = os.path.abspath(file_path)
+    tags = load_tags()
+    if tag in tags:
+        if file_path not in tags[tag]:
+            tags[tag].append(file_path)
+    else:
+        tags[tag] = [file_path]
+    save_tags(tags)
+    return f"Tagged '{file_path}' as '{tag}'."
+
+def get_files_by_tag(tag):
+    tags = load_tags()
+    return tags.get(tag, [])    
+
+#private files
+private_files = {}  # { "filename": "PIN" }
+
+def mark_file_private(filename, pin):
+    private_files[filename] = pin
+    return f"{filename} is now marked as private."
+
+def access_private_file(filename, pin_attempt):
+    if filename in private_files:
+        if private_files[filename] == pin_attempt:
+            return f"Access granted to {filename}."
+        else:
+            return "Incorrect PIN. Access denied."
+    return "File is not marked as private."
