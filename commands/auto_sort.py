@@ -8,8 +8,9 @@ FILE_CATEGORIES = {
     "Videos": [".mp4", ".avi", ".mkv", ".mov"],
     "Music": [".mp3", ".wav", ".flac"],
     "Archives": [".zip", ".rar", ".7z", ".tar"],
-    "Code": [".py", ".js", ".java", ".cpp", ".html", ".css", ".ts"]
+    "Code": [".py", ".js", ".java", ".cpp", ".html", ".css", ".ts"],
 }
+
 
 def auto_sort_files(source_folder="."):
     if not os.path.exists(source_folder):

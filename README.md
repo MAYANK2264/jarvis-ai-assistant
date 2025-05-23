@@ -30,9 +30,8 @@ JARVIS is a personal AI assistant built using Python that interacts through **vo
 ---
 
 ## 📂 File Structure
-plaintext
-Copy
-Edit
+
+```
 JarvisAI/
 │
 ├── main.py                      # Entry point for running the assistant
@@ -122,15 +121,15 @@ In your terminal:
     
 Then just speak a command like:
 
-“Open Notepad”
-“Create folder test”
-“Delete folder test”
-“What is the battery status”
-“Who is the first person to walk on the moon”
-“Tell me a joke”
-“Search Python tutorials”
-“Shutdown the system”
-“Stop” (to exit)
+"Open Notepad"
+"Create folder test"
+"Delete folder test"
+"What is the battery status"
+"Who is the first person to walk on the moon"
+"Tell me a joke"
+"Search Python tutorials"
+"Shutdown the system"
+"Stop" (to exit)
 
 
 ## 🧠 Switching Between Online and Offline AI

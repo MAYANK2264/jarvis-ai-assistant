@@ -12,5 +12,5 @@ def smart_search_files(query):
             file_name, meta = line.strip().split("::", 1)
             if query in file_name.lower() or query in meta.lower():
                 matches.append((file_name, meta))
-    
+
     return matches

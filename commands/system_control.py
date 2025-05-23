@@ -18,8 +18,7 @@ def restart():
 
 def set_volume(level):
     devices = AudioUtilities.GetSpeakers()
-    interface = devices.Activate(
-        IAudioEndpointVolume._iid_, 0, None)
+    interface = devices.Activate(IAudioEndpointVolume._iid_, 0, None)
     volume = interface.QueryInterface(IAudioEndpointVolume)
     current_volume = volume.GetMasterVolumeLevelScalar() * 100
 
@@ -37,7 +36,7 @@ def set_volume(level):
 
 def set_brightness(level):
     current_brightness = sbc.get_brightness()[0]
-    
+
     # Gradually change brightness
     if level > current_brightness:
         for i in range(current_brightness, level, 1):
@@ -67,7 +66,9 @@ def lock_system():
 def toggle_wifi(turn_on=True):
     try:
         state = "on" if turn_on else "off"
-        subprocess.run(["netsh", "interface", "set", "interface", "Wi-Fi", state], check=True)
+        subprocess.run(
+            ["netsh", "interface", "set", "interface", "Wi-Fi", state], check=True
+        )
         return f"Wi-Fi turned {state} successfully."
     except Exception as e:
         return f"Failed to toggle Wi-Fi: {str(e)}"
@@ -76,10 +77,16 @@ def toggle_wifi(turn_on=True):
 def toggle_airplane_mode(turn_on=True):
     try:
         if turn_on:
-            subprocess.run(["netsh", "interface", "set", "interface", "Wi-Fi", "disable"], check=True)
+            subprocess.run(
+                ["netsh", "interface", "set", "interface", "Wi-Fi", "disable"],
+                check=True,
+            )
             return "Airplane Mode activated (Wi-Fi disabled)."
         else:
-            subprocess.run(["netsh", "interface", "set", "interface", "Wi-Fi", "enable"], check=True)
+            subprocess.run(
+                ["netsh", "interface", "set", "interface", "Wi-Fi", "enable"],
+                check=True,
+            )
             return "Airplane Mode deactivated (Wi-Fi enabled)."
     except Exception as e:
         return f"Failed to toggle Airplane Mode: {str(e)}"
