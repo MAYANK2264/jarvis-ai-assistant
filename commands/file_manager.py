@@ -16,6 +16,9 @@ from concurrent.futures import ThreadPoolExecutor
 from functools import partial
 import sys
 import tempfile
+import shutil
+from datetime import datetime
+
 
 logger = logging.getLogger(__name__)
 
@@ -40,15 +43,21 @@ def ensure_safe_path(path: str) -> Path:
         ValueError: If the path is outside the workspace or invalid
     """
     try:
-        abs_path = Path(path).resolve()
+        # Convert to Path object and resolve to absolute path
+        path_obj = Path(path)
+        if not path_obj.is_absolute():
+            path_obj = Path.cwd() / path_obj
+        abs_path = path_obj.resolve()
         workspace = Path.cwd().resolve()
         
         # Allow paths in temp directory during testing
         if "pytest" in sys.modules and str(abs_path).startswith(tempfile.gettempdir()):
             return abs_path
             
-        if not str(abs_path).startswith(str(workspace)):
-            raise ValueError("Access denied: Path outside workspace")
+        # Check if path is within workspace or is a parent of workspace
+        if not (str(abs_path).startswith(str(workspace)) or str(workspace).startswith(str(abs_path))):
+            raise ValueError(f"Access denied: Path {abs_path} is outside workspace {workspace}")
+            
         return abs_path
     except Exception as e:
         logger.error("Path security check failed: %s", str(e))
@@ -98,26 +107,62 @@ def create_folder(path: str) -> bool:
         return False
 
 
-def delete_file_or_folder(path: str) -> bool:
+def move_to_recycle_bin(path: Path) -> bool:
+    """Move a file or folder to the recycle bin.
+    
+    Args:
+        path: Path to the item to move to recycle bin
+        
+    Returns:
+        bool: True if move was successful, False otherwise
+    """
+    try:
+        recycle_path = Path(RECYCLE_BIN) / path.name
+        # If item with same name exists in recycle bin, append timestamp
+        if recycle_path.exists():
+            from datetime import datetime
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            recycle_path = Path(RECYCLE_BIN) / f"{path.stem}_{timestamp}{path.suffix}"
+        
+        if path.is_file():
+            shutil.move(str(path), str(recycle_path))
+        else:
+            shutil.move(str(path), str(recycle_path))
+        return True
+    except Exception as e:
+        logger.error("Failed to move item to recycle bin: %s", str(e))
+        return False
+
+
+def delete_file_or_folder(path: str, use_recycle_bin: bool = True) -> bool:
     """Delete a file or folder at the specified path.
     
     Args:
         path: The path to the file or folder to delete
+        use_recycle_bin: Whether to move to recycle bin instead of permanent deletion
         
     Returns:
         bool: True if deletion was successful, False otherwise
     """
     try:
         path_obj = ensure_safe_path(path)
+        if not path_obj.exists():
+            logger.error("Path does not exist: %s", path)
+            return False
+            
         if not check_permissions(path_obj):
             logger.error("Permission denied for path: %s", path)
             return False
+            
+        if use_recycle_bin:
+            return move_to_recycle_bin(path_obj)
+            
         if path_obj.is_file():
             path_obj.unlink()
-        elif path_obj.is_dir():
+        else:
             shutil.rmtree(path_obj)
         return True
-    except (OSError, ValueError) as e:
+    except Exception as e:
         logger.error("Error deleting %s: %s", path, str(e))
         return False
 
@@ -153,7 +198,6 @@ def process_file(file_path: Path) -> dict:
         
     Returns:
         dict: File information including name, path, size, modified time, and type
-        None: If there was an error processing the file
     """
     try:
         stat_info = file_path.stat()
@@ -161,19 +205,22 @@ def process_file(file_path: Path) -> dict:
             "name": file_path.name,
             "path": str(file_path),
             "size": stat_info.st_size,
-            "modified": stat_info.st_mtime,
+            "modified": datetime.fromtimestamp(stat_info.st_mtime).strftime('%Y-%m-%d %H:%M:%S'),
             "is_dir": file_path.is_dir(),
+            "extension": file_path.suffix.lower() if not file_path.is_dir() else "",
+            "permissions": stat.filemode(stat_info.st_mode)
         }
     except (OSError, ValueError) as e:
         logger.error("Error processing file %s: %s", file_path, str(e))
         return None
 
 
-def list_items(folder: str = ".") -> str:
+def list_items(folder: str = ".", include_hidden: bool = False) -> str:
     """List directory contents efficiently.
     
     Args:
         folder: The directory to list contents of (defaults to current directory)
+        include_hidden: Whether to include hidden files in the listing
         
     Returns:
         str: Formatted string containing directory contents or error message
@@ -181,28 +228,45 @@ def list_items(folder: str = ".") -> str:
     try:
         path = ensure_safe_path(folder)
         if not path.is_dir():
-            return f"{folder} is not a directory"
+            return f"Error: {folder} is not a directory"
 
         if not check_permissions(path):
-            return f"Permission denied for {folder}"
+            return f"Error: Permission denied for {folder}"
 
         # Use ThreadPoolExecutor for parallel processing of file stats
         with ThreadPoolExecutor() as executor:
-            files = list(path.iterdir())
+            files = [f for f in path.iterdir() 
+                    if include_hidden or not f.name.startswith('.')]
             results = list(executor.map(process_file, files))
 
         # Filter out None results and sort
         results = [r for r in results if r is not None]
-        results.sort(key=lambda x: (not x["is_dir"], x["name"]))
+        results.sort(key=lambda x: (not x["is_dir"], x["name"].lower()))
 
-        # Format output
-        output = []
-        for item in results:
-            type_marker = "D" if item["is_dir"] else "F"
-            size = f"{item['size']:,} bytes"
-            output.append(f"[{type_marker}] {item['name']} ({size})")
+        if not results:
+            return "Directory is empty"
 
-        return "\n".join(output) if output else "Directory is empty"
+        # Format output with detailed information
+        output = [f"Contents of {path}:"]
+        output.append("\nDirectories:")
+        dirs = [item for item in results if item["is_dir"]]
+        files = [item for item in results if not item["is_dir"]]
+        
+        if dirs:
+            for item in dirs:
+                output.append(f"{item['permissions']} {item['name']:<30} {item['modified']}")
+        else:
+            output.append("No directories")
+            
+        output.append("\nFiles:")
+        if files:
+            for item in files:
+                size = f"{item['size']:,} bytes"
+                output.append(f"{item['permissions']} {item['name']:<30} {size:<15} {item['modified']}")
+        else:
+            output.append("No files")
+
+        return "\n".join(output)
 
     except (OSError, ValueError) as e:
         logger.error("Failed to list directory: %s", str(e))
@@ -222,22 +286,35 @@ def move_item(source: str, target: str) -> bool:
     try:
         src_obj = ensure_safe_path(source)
         tgt_obj = ensure_safe_path(target)
+        
+        if not src_obj.exists():
+            logger.error("Source path does not exist: %s", source)
+            return False
+            
         if not check_permissions(src_obj) or not check_permissions(tgt_obj.parent):
             logger.error("Permission denied for path: %s or %s", source, target)
             return False
+            
+        # If target exists and is different type than source, fail
+        if tgt_obj.exists() and tgt_obj.is_dir() != src_obj.is_dir():
+            logger.error("Cannot move %s to %s: incompatible types", source, target)
+            return False
+            
+        # Use shutil.move which will handle cross-device moves
         shutil.move(str(src_obj), str(tgt_obj))
         return True
-    except (OSError, ValueError) as e:
+    except Exception as e:
         logger.error("Error moving %s to %s: %s", source, target, str(e))
         return False
 
 
-def copy_item(source: str, target: str) -> bool:
+def copy_item(source: str, target: str, preserve_metadata: bool = True) -> bool:
     """Copy a file or folder to a new location.
     
     Args:
         source: Path to the source file or folder
         target: Path where to copy the item
+        preserve_metadata: Whether to preserve metadata (timestamps, permissions)
         
     Returns:
         bool: True if copy was successful, False otherwise
@@ -245,15 +322,29 @@ def copy_item(source: str, target: str) -> bool:
     try:
         src_obj = ensure_safe_path(source)
         tgt_obj = ensure_safe_path(target)
+        
+        if not src_obj.exists():
+            logger.error("Source path does not exist: %s", source)
+            return False
+            
         if not check_permissions(src_obj) or not check_permissions(tgt_obj.parent):
             logger.error("Permission denied for path: %s or %s", source, target)
             return False
+            
+        # If target exists and is different type than source, fail
+        if tgt_obj.exists() and tgt_obj.is_dir() != src_obj.is_dir():
+            logger.error("Cannot copy %s to %s: incompatible types", source, target)
+            return False
+            
+        copy_func = shutil.copy2 if preserve_metadata else shutil.copy
         if src_obj.is_file():
-            shutil.copy2(str(src_obj), str(tgt_obj))
+            copy_func(str(src_obj), str(tgt_obj))
         else:
-            shutil.copytree(str(src_obj), str(tgt_obj))
+            shutil.copytree(str(src_obj), str(tgt_obj), 
+                          copy_function=copy_func,
+                          dirs_exist_ok=True)
         return True
-    except (OSError, ValueError) as e:
+    except Exception as e:
         logger.error("Error copying %s to %s: %s", source, target, str(e))
         return False
 
@@ -340,49 +431,148 @@ def sort_files(files: List[str], sort_by: str = "name", reverse: bool = False) -
 TAG_FILE = "tags.json"
 
 
-def load_tags():
-    if os.path.exists(TAG_FILE):
-        with open(TAG_FILE, "r") as file:
-            return json.load(file)
-    return {}
+class TagManager:
+    def __init__(self, tag_file: str = TAG_FILE):
+        self.tag_file = tag_file
+        self.tags = self._load_tags()
+        
+    def _load_tags(self) -> dict:
+        """Load tags from file."""
+        try:
+            if os.path.exists(self.tag_file):
+                with open(self.tag_file, "r") as file:
+                    return json.load(file)
+            return {}
+        except Exception as e:
+            logger.error("Error loading tags: %s", str(e))
+            return {}
+            
+    def _save_tags(self) -> bool:
+        """Save tags to file."""
+        try:
+            with open(self.tag_file, "w") as file:
+                json.dump(self.tags, file, indent=4)
+            return True
+        except Exception as e:
+            logger.error("Error saving tags: %s", str(e))
+            return False
+            
+    def add_tag(self, file_path: str, tag: str) -> str:
+        """Add a tag to a file.
+        
+        Args:
+            file_path: Path to the file to tag
+            tag: Tag to apply to the file
+            
+        Returns:
+            str: Status message
+        """
+        try:
+            abs_path = ensure_safe_path(file_path)
+            if not abs_path.exists():
+                return f"Error: File {file_path} does not exist"
+                
+            abs_path_str = str(abs_path)
+            if tag in self.tags:
+                if abs_path_str not in self.tags[tag]:
+                    self.tags[tag].append(abs_path_str)
+            else:
+                self.tags[tag] = [abs_path_str]
+                
+            if self._save_tags():
+                return f"Successfully tagged '{file_path}' as '{tag}'"
+            return "Error: Failed to save tags"
+            
+        except Exception as e:
+            logger.error("Error adding tag: %s", str(e))
+            return f"Error: Failed to add tag - {str(e)}"
+            
+    def remove_tag(self, file_path: str, tag: str) -> str:
+        """Remove a tag from a file.
+        
+        Args:
+            file_path: Path to the file
+            tag: Tag to remove
+            
+        Returns:
+            str: Status message
+        """
+        try:
+            abs_path = ensure_safe_path(file_path)
+            abs_path_str = str(abs_path)
+            
+            if tag not in self.tags:
+                return f"Error: Tag '{tag}' does not exist"
+                
+            if abs_path_str not in self.tags[tag]:
+                return f"Error: File '{file_path}' is not tagged with '{tag}'"
+                
+            self.tags[tag].remove(abs_path_str)
+            if not self.tags[tag]:  # Remove empty tag
+                del self.tags[tag]
+                
+            if self._save_tags():
+                return f"Successfully removed tag '{tag}' from '{file_path}'"
+            return "Error: Failed to save tags"
+            
+        except Exception as e:
+            logger.error("Error removing tag: %s", str(e))
+            return f"Error: Failed to remove tag - {str(e)}"
+            
+    def get_files_by_tag(self, tag: str) -> List[str]:
+        """Get all files with a specific tag.
+        
+        Args:
+            tag: The tag to search for
+            
+        Returns:
+            List[str]: List of file paths with the specified tag
+        """
+        return self.tags.get(tag, [])
+        
+    def get_tags_for_file(self, file_path: str) -> List[str]:
+        """Get all tags for a specific file.
+        
+        Args:
+            file_path: Path to the file
+            
+        Returns:
+            List[str]: List of tags associated with the file
+        """
+        try:
+            abs_path = ensure_safe_path(file_path)
+            abs_path_str = str(abs_path)
+            return [tag for tag, files in self.tags.items() 
+                   if abs_path_str in files]
+        except Exception as e:
+            logger.error("Error getting tags for file: %s", str(e))
+            return []
+            
+    def list_all_tags(self) -> List[str]:
+        """Get all existing tags.
+        
+        Returns:
+            List[str]: List of all tags
+        """
+        return list(self.tags.keys())
 
-
-def save_tags(tags):
-    with open(TAG_FILE, "w") as file:
-        json.dump(tags, file, indent=4)
-
+# Initialize global tag manager
+tag_manager = TagManager()
 
 def tag_file(file_path: str, tag: str) -> str:
-    """Tag a file with a label.
+    """Tag a file with a label (wrapper for TagManager).
     
     Args:
         file_path: Path to the file to tag
         tag: Tag to apply to the file
         
     Returns:
-        str: Status message indicating success or failure
+        str: Status message
     """
-    try:
-        abs_path = ensure_safe_path(file_path)
-        if not abs_path.exists():
-            return f"Failed to tag file: {file_path} does not exist"
-            
-        abs_path_str = str(abs_path)
-        tags = load_tags()
-        if tag in tags:
-            if abs_path_str not in tags[tag]:
-                tags[tag].append(abs_path_str)
-        else:
-            tags[tag] = [abs_path_str]
-        save_tags(tags)
-        return f"Tagged '{file_path}' as '{tag}'."
-    except (OSError, ValueError) as e:
-        logger.error("Failed to tag file %s: %s", file_path, str(e))
-        return f"Failed to tag file: {str(e)}"
-
+    return tag_manager.add_tag(file_path, tag)
 
 def get_files_by_tag(tag: str) -> List[str]:
-    """Get all files with a specific tag.
+    """Get all files with a specific tag (wrapper for TagManager).
     
     Args:
         tag: The tag to search for
@@ -390,13 +580,7 @@ def get_files_by_tag(tag: str) -> List[str]:
     Returns:
         List[str]: List of file paths with the specified tag
     """
-    try:
-        tags = load_tags()
-        return tags.get(tag, [])
-    except (OSError, ValueError) as e:
-        logger.error("Failed to get files by tag %s: %s", tag, str(e))
-        return []
-
+    return tag_manager.get_files_by_tag(tag)
 
 # private files
 private_files = {}  # { "filename": "PIN" }

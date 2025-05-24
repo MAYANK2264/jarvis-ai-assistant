@@ -20,25 +20,33 @@ def auto_sort_files(source_folder="."):
 
     for file_name in os.listdir(source_folder):
         file_path = os.path.join(source_folder, file_name)
+
         if not os.path.isfile(file_path):
             continue
 
-        _, ext = os.path.splitext(file_name.lower())
+        _, ext = os.path.splitext(file_name)
+        ext = ext.lower()
         moved = False
 
         for category, extensions in FILE_CATEGORIES.items():
             if ext in extensions:
                 category_folder = os.path.join(source_folder, category)
                 os.makedirs(category_folder, exist_ok=True)
-                shutil.move(file_path, os.path.join(category_folder, file_name))
-                files_moved += 1
-                moved = True
+                try:
+                    shutil.move(file_path, os.path.join(category_folder, file_name))
+                    files_moved += 1
+                    moved = True
+                except Exception as e:
+                    print(f"Failed to move file '{file_name}': {e}")
                 break
 
-        if not moved and ext:  # Unknown but valid extension
+        if not moved and ext:
             other_folder = os.path.join(source_folder, "Others")
             os.makedirs(other_folder, exist_ok=True)
-            shutil.move(file_path, os.path.join(other_folder, file_name))
-            files_moved += 1
+            try:
+                shutil.move(file_path, os.path.join(other_folder, file_name))
+                files_moved += 1
+            except Exception as e:
+                print(f"Failed to move file '{file_name}' to Others: {e}")
 
     return f"Auto-sorting complete. Moved {files_moved} file(s)."
