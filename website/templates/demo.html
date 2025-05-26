@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block title %}Demo - Jarvis AI{% endblock %}
+
+{% block extra_head %}
+<style>
+.globe-container {
+    cursor: move;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <section class="hero" style="padding: 2rem 0;">
+        <h1>Try Jarvis AI</h1>
+        <p>Experience the power of Jarvis AI with our interactive demo.</p>
+    </section>
+
+    <div class="chat-container">
+        <div class="chat-messages" id="chat-messages">
+            <div class="message bot-message">
+                Hello! I'm Jarvis AI. How can I help you today?
+            </div>
+        </div>
+        <div class="chat-input">
+            <input type="text" id="user-input" placeholder="Type your command here..." autocomplete="off">
+            <button onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+
+    <div class="card" style="margin-top: 2rem;">
+        <h3>Try These Commands</h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top: 1rem;">
+            <button class="btn btn-outline" onclick="setExample('What can you do?')">What can you do?</button>
+            <button class="btn btn-outline" onclick="setExample('Open Chrome')">Open Chrome</button>
+            <button class="btn btn-outline" onclick="setExample('What's the weather like?')">Check weather</button>
+            <button class="btn btn-outline" onclick="setExample('Tell me a joke')">Tell me a joke</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<!-- Replace standard globe with interactive version -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="{{ url_for('static', filename='js/interactive-globe.js') }}"></script>
+<script>
+function sendMessage() {
+    const input = document.getElementById('user-input');
+    const message = input.value.trim();
+    
+    if (message) {
+        // Add user message
+        addMessage(message, 'user');
+        input.value = '';
+
+        // Send to backend
+        fetch('/api/demo', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ command: message })
+        })
+        .then(response => response.json())
+        .then(data => {
+            addMessage(data.response, 'bot');
+        })
+        .catch(error => {
+            addMessage('Sorry, there was an error processing your request.', 'bot');
+        });
+    }
+}
+
+function addMessage(text, sender) {
+    const messagesDiv = document.getElementById('chat-messages');
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message ${sender}-message`;
+    messageDiv.textContent = text;
+    messagesDiv.appendChild(messageDiv);
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+}
+
+function setExample(text) {
+    const input = document.getElementById('user-input');
+    input.value = text;
+    input.focus();
+}
+
+// Handle Enter key
+document.getElementById('user-input').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        sendMessage();
+    }
+});
+</script>
+{% endblock %} 

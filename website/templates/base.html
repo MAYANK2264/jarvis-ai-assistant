@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Jarvis AI{% endblock %}</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira+Code&display=swap">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/globe.css') }}">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/favicon.png') }}">
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <div class="globe-container">
+        <canvas id="globe-canvas"></canvas>
+    </div>
+
+    <nav class="navbar">
+        <div class="container">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <a href="{{ url_for('home') }}" class="navbar-brand">Jarvis AI</a>
+                </div>
+                <div>
+                    <a href="{{ url_for('demo') }}" class="nav-link">Demo</a>
+                    <a href="{{ url_for('docs') }}" class="nav-link">Docs</a>
+                    <a href="{{ url_for('install') }}" class="nav-link">Install</a>
+                    <a href="https://github.com/MAYANK2264" class="nav-link" target="_blank">GitHub</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer style="text-align: center; padding: 2rem; color: var(--text-secondary); border-top: 1px solid var(--border-color);">
+        <div class="container">
+            <p style="margin-bottom: 0.5rem;">Created by: MAYANK CHOUHAN</p>
+            <p>&copy; {{ year }} Jarvis AI. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    {% if request.endpoint != 'demo' %}
+    <script src="{{ url_for('static', filename='js/globe.js') }}"></script>
+    {% endif %}
+    {% block scripts %}{% endblock %}
+</body>
+</html> 

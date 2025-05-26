@@ -1,0 +1,344 @@
+{% extends "base.html" %}
+
+{% block title %}Documentation - Jarvis AI{% endblock %}
+
+{% block content %}
+<div class="container">
+    <section class="hero" style="padding: 2rem 0;">
+        <h1>Documentation</h1>
+        <p>Learn how to use and customize Jarvis AI.</p>
+    </section>
+
+    <div class="docs-container">
+        <aside class="docs-sidebar">
+            <div class="sidebar-header">
+                <h3>Contents</h3>
+            </div>
+            <nav class="sidebar-nav">
+                <ul>
+                    <li><a href="#getting-started" class="sidebar-link active">Getting Started</a></li>
+                    <li><a href="#installation" class="sidebar-link">Installation</a></li>
+                    <li><a href="#basic-usage" class="sidebar-link">Basic Usage</a></li>
+                    <li><a href="#voice-commands" class="sidebar-link">Voice Commands</a></li>
+                    <li><a href="#customization" class="sidebar-link">Customization</a></li>
+                    <li><a href="#api-reference" class="sidebar-link">API Reference</a></li>
+                    <li><a href="#troubleshooting" class="sidebar-link">Troubleshooting</a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <main class="docs-content">
+            <section id="getting-started" class="docs-section">
+                <h2>Getting Started</h2>
+                <p>Jarvis AI is a powerful personal assistant that helps you control your computer using voice commands or text input. This guide will help you get started with Jarvis AI.</p>
+                
+                <div class="info-box">
+                    <h4>System Requirements</h4>
+                    <ul>
+                        <li>Windows 10/11, macOS, or Linux</li>
+                        <li>Python 3.8 or higher</li>
+                        <li>4GB RAM minimum</li>
+                        <li>Microphone (for voice commands)</li>
+                    </ul>
+                </div>
+            </section>
+
+            <section id="installation" class="docs-section">
+                <h2>Installation</h2>
+                <p>Choose your preferred installation method:</p>
+
+                <div class="code-block">
+                    <h4>Using pip (Recommended)</h4>
+                    <pre><code>pip install jarvis-ai</code></pre>
+                </div>
+
+                <div class="code-block">
+                    <h4>From source</h4>
+                    <pre><code>git clone https://github.com/MAYANK2264/JarvisAI.git
+cd JarvisAI
+pip install -r requirements.txt</code></pre>
+                </div>
+            </section>
+
+            <section id="basic-usage" class="docs-section">
+                <h2>Basic Usage</h2>
+                <p>Start Jarvis AI by running:</p>
+                <div class="code-block">
+                    <pre><code>python -m jarvis</code></pre>
+                </div>
+
+                <div class="info-box">
+                    <h4>Quick Start Commands</h4>
+                    <ul>
+                        <li><code>jarvis hello</code> - Test if Jarvis is responding</li>
+                        <li><code>jarvis help</code> - Show available commands</li>
+                        <li><code>jarvis exit</code> - Close Jarvis AI</li>
+                    </ul>
+                </div>
+            </section>
+
+            <section id="voice-commands" class="docs-section">
+                <h2>Voice Commands</h2>
+                <p>Jarvis AI supports natural voice commands for hands-free operation.</p>
+
+                <div class="command-grid">
+                    <div class="command-card">
+                        <div class="command-icon">🎯</div>
+                        <h4>System Control</h4>
+                        <ul>
+                            <li>"Open Chrome"</li>
+                            <li>"Close Window"</li>
+                            <li>"Volume Up/Down"</li>
+                        </ul>
+                    </div>
+
+                    <div class="command-card">
+                        <div class="command-icon">📁</div>
+                        <h4>File Operations</h4>
+                        <ul>
+                            <li>"Create new folder"</li>
+                            <li>"Open documents"</li>
+                            <li>"Search for file"</li>
+                        </ul>
+                    </div>
+
+                    <div class="command-card">
+                        <div class="command-icon">🔍</div>
+                        <h4>Web Search</h4>
+                        <ul>
+                            <li>"Search Google for..."</li>
+                            <li>"Find images of..."</li>
+                            <li>"Look up weather"</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <section id="customization" class="docs-section">
+                <h2>Customization</h2>
+                <p>Create custom commands by extending the base Command class:</p>
+
+                <div class="code-block">
+                    <pre><code>from jarvis import Command
+
+@Command.register
+def my_custom_command(text):
+    """
+    Custom command implementation
+    Args:
+        text (str): The command text
+    Returns:
+        str: Response message
+    """
+    # Your custom logic here
+    return "Command executed successfully"</code></pre>
+                </div>
+            </section>
+
+            <section id="api-reference" class="docs-section">
+                <h2>API Reference</h2>
+                <p>Integrate Jarvis AI into your Python applications:</p>
+
+                <div class="code-block">
+                    <pre><code>from jarvis import JarvisAI
+
+# Initialize Jarvis
+jarvis = JarvisAI()
+
+# Execute commands
+response = jarvis.execute_command("open chrome")
+
+# Get available commands
+commands = jarvis.get_commands()
+
+# Add custom command handler
+@jarvis.command_handler("custom_command")
+def handle_custom(text):
+    return "Custom command executed"</code></pre>
+                </div>
+            </section>
+
+            <section id="troubleshooting" class="docs-section">
+                <h2>Troubleshooting</h2>
+                
+                <div class="troubleshooting-grid">
+                    <div class="card">
+                        <h4>Voice Recognition Issues</h4>
+                        <ul>
+                            <li>Check microphone connection</li>
+                            <li>Verify microphone permissions</li>
+                            <li>Test in a quiet environment</li>
+                            <li>Update audio drivers</li>
+                        </ul>
+                    </div>
+
+                    <div class="card">
+                        <h4>Performance Issues</h4>
+                        <ul>
+                            <li>Check system requirements</li>
+                            <li>Close unnecessary applications</li>
+                            <li>Update to latest version</li>
+                            <li>Try offline mode</li>
+                        </ul>
+                    </div>
+
+                    <div class="card">
+                        <h4>Common Errors</h4>
+                        <ul>
+                            <li>ModuleNotFoundError: Install missing dependencies</li>
+                            <li>PermissionError: Run with admin rights</li>
+                            <li>TimeoutError: Check internet connection</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Highlight active section in sidebar
+function updateActiveSection() {
+    const sections = document.querySelectorAll('.docs-section');
+    const navLinks = document.querySelectorAll('.sidebar-link');
+    
+    let currentSection = '';
+    
+    sections.forEach(section => {
+        const sectionTop = section.offsetTop;
+        if (window.pageYOffset >= sectionTop - 100) {
+            currentSection = section.getAttribute('id');
+        }
+    });
+
+    navLinks.forEach(link => {
+        link.classList.remove('active');
+        if (link.getAttribute('href').slice(1) === currentSection) {
+            link.classList.add('active');
+        }
+    });
+}
+
+// Smooth scroll to sections
+document.querySelectorAll('.sidebar-link').forEach(link => {
+    link.addEventListener('click', (e) => {
+        e.preventDefault();
+        const targetId = link.getAttribute('href').slice(1);
+        const targetSection = document.getElementById(targetId);
+        window.scrollTo({
+            top: targetSection.offsetTop - 80,
+            behavior: 'smooth'
+        });
+    });
+});
+
+window.addEventListener('scroll', updateActiveSection);
+updateActiveSection();
+</script>
+
+<style>
+.sidebar-nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.sidebar-nav li {
+    margin-bottom: 0.5rem;
+}
+
+.sidebar-link {
+    display: block;
+    padding: 0.5rem 1rem;
+    color: var(--text-secondary);
+    text-decoration: none;
+    border-radius: 0.375rem;
+    transition: all 0.2s;
+}
+
+.sidebar-link:hover {
+    color: var(--text-primary);
+    background-color: var(--bg-primary);
+}
+
+.sidebar-link.active {
+    color: var(--text-primary);
+    background-color: var(--accent-color);
+}
+
+.docs-section {
+    margin-bottom: 3rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.docs-section:last-child {
+    border-bottom: none;
+}
+
+.info-box {
+    background-color: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+}
+
+.command-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin: 1.5rem 0;
+}
+
+.command-card {
+    background-color: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+}
+
+.command-icon {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+}
+
+.troubleshooting-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin: 1.5rem 0;
+}
+
+.code-block {
+    background-color: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+}
+
+.code-block pre {
+    margin: 0;
+    overflow-x: auto;
+}
+
+.sidebar-header {
+    padding: 1rem;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 1rem;
+}
+
+@media (max-width: 768px) {
+    .docs-container {
+        grid-template-columns: 1fr;
+    }
+    
+    .docs-sidebar {
+        margin-bottom: 2rem;
+    }
+}
+</style>
+{% endblock %} 

@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block title %}Jarvis AI - Your Personal AI Assistant{% endblock %}
+
+{% block content %}
+<div class="container">
+    <section class="hero">
+        <h1>Your Personal AI Assistant</h1>
+        <p>Jarvis AI is an intelligent assistant that helps you automate tasks, control your computer, and boost your productivity.</p>
+        <div style="margin-top: 2rem;">
+            <a href="{{ url_for('demo') }}" class="btn btn-primary">Try Demo</a>
+            <a href="{{ url_for('install') }}" class="btn btn-outline" style="margin-left: 1rem;">Install Now</a>
+        </div>
+    </section>
+
+    <section class="feature-grid">
+        <div class="feature-card">
+            <div class="feature-icon">🎯</div>
+            <h3>Task Automation</h3>
+            <p>Automate repetitive tasks with simple voice commands or text instructions.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">🔊</div>
+            <h3>Voice Control</h3>
+            <p>Control your computer using natural voice commands with advanced speech recognition.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">🤖</div>
+            <h3>AI-Powered</h3>
+            <p>Leverages cutting-edge AI to understand context and provide intelligent responses.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">⚡</div>
+            <h3>Offline Support</h3>
+            <p>Works offline with core functionality, no internet connection required.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">🔒</div>
+            <h3>Privacy First</h3>
+            <p>Your data stays on your computer. No cloud processing required.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">🎨</div>
+            <h3>Customizable</h3>
+            <p>Easy to extend with custom commands and personalized workflows.</p>
+        </div>
+    </section>
+
+    <section style="margin-top: 4rem; text-align: center;">
+        <h2>Ready to Get Started?</h2>
+        <p style="color: var(--text-secondary); margin: 1rem 0 2rem;">Install Jarvis AI and experience the future of personal computing.</p>
+        <a href="{{ url_for('install') }}" class="btn btn-primary">Install Now</a>
+    </section>
+</div>
+{% endblock %} 

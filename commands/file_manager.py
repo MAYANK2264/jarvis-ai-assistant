@@ -261,7 +261,7 @@ def list_items(folder: str = ".", include_hidden: bool = False) -> str:
         output.append("\nFiles:")
         if files:
             for item in files:
-                size = f"{item['size']:,} bytes"
+            size = f"{item['size']:,} bytes"
                 output.append(f"{item['permissions']} {item['name']:<30} {size:<15} {item['modified']}")
         else:
             output.append("No files")
@@ -441,12 +441,12 @@ class TagManager:
         try:
             if os.path.exists(self.tag_file):
                 with open(self.tag_file, "r") as file:
-                    return json.load(file)
-            return {}
+            return json.load(file)
+    return {}
         except Exception as e:
             logger.error("Error loading tags: %s", str(e))
             return {}
-            
+
     def _save_tags(self) -> bool:
         """Save tags to file."""
         try:

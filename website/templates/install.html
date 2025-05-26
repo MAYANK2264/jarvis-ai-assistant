@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+
+{% block title %}Installation - Jarvis AI{% endblock %}
+
+{% block content %}
+<div class="container">
+    <section class="hero" style="padding: 2rem 0;">
+        <h1>Installation Guide</h1>
+        <p>Get started with Jarvis AI in minutes.</p>
+    </section>
+
+    <div class="card">
+        <h3>Prerequisites</h3>
+        <ul style="list-style-type: none; padding: 0;">
+            <li style="margin-bottom: 0.5rem;">✅ Python 3.8 or higher</li>
+            <li style="margin-bottom: 0.5rem;">✅ pip (Python package installer)</li>
+            <li style="margin-bottom: 0.5rem;">✅ Git (optional, for development)</li>
+        </ul>
+    </div>
+
+    <div class="card" style="margin-top: 2rem;">
+        <h3>Quick Install</h3>
+        <p>Install Jarvis AI using pip:</p>
+        <div class="code-block">
+            <pre><code>pip install jarvis-ai</code></pre>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+    </div>
+
+    <div class="card" style="margin-top: 2rem;">
+        <h3>Manual Installation</h3>
+        <p>Clone the repository and install dependencies:</p>
+        <div class="code-block">
+            <pre><code>git clone https://github.com/MAYANK2264/JarvisAI.git
+cd JarvisAI
+pip install -r requirements.txt</code></pre>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+    </div>
+
+    <div class="card" style="margin-top: 2rem;">
+        <h3>Configuration</h3>
+        <p>Create a configuration file at <code>~/.jarvis/config.yml</code>:</p>
+        <div class="code-block">
+            <pre><code>language: en
+voice_enabled: true
+offline_mode: false
+custom_commands_dir: ~/.jarvis/commands</code></pre>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+    </div>
+
+    <div class="card" style="margin-top: 2rem;">
+        <h3>Verify Installation</h3>
+        <p>Test your installation by running:</p>
+        <div class="code-block">
+            <pre><code>python -m jarvis --version</code></pre>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+    </div>
+
+    <div style="margin: 3rem 0; text-align: center;">
+        <h2>Need Help?</h2>
+        <p style="color: var(--text-secondary);">Check our <a href="{{ url_for('docs') }}" style="color: var(--accent-color);">documentation</a> or join our community on <a href="https://github.com/MAYANK2264/JarvisAI/discussions" style="color: var(--accent-color);" target="_blank">GitHub Discussions</a>.</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function copyCode(button) {
+    const codeBlock = button.previousElementSibling;
+    const code = codeBlock.textContent;
+    
+    navigator.clipboard.writeText(code).then(() => {
+        button.textContent = 'Copied!';
+        setTimeout(() => {
+            button.textContent = 'Copy';
+        }, 2000);
+    });
+}
+
+// Add copy buttons to all code blocks
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('pre code').forEach(block => {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'code-block';
+        block.parentNode.parentNode.insertBefore(wrapper, block.parentNode);
+        wrapper.appendChild(block.parentNode);
+        
+        const button = document.createElement('button');
+        button.className = 'copy-btn';
+        button.textContent = 'Copy';
+        button.onclick = function() { copyCode(this); };
+        wrapper.appendChild(button);
+    });
+});
+</script>
+
+<style>
+.code-block {
+    position: relative;
+    margin: 1rem 0;
+}
+
+.copy-btn {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    padding: 0.25rem 0.75rem;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 0.25rem;
+    cursor: pointer;
+    font-size: 0.875rem;
+    transition: all 0.2s;
+}
+
+.copy-btn:hover {
+    background-color: var(--accent-color);
+    color: white;
+    border-color: var(--accent-color);
+}
+</style>
+{% endblock %} 

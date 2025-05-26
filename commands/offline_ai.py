@@ -98,7 +98,7 @@ class ConversationContext:
         })
         if len(self.context) > self.max_context:
             self.context.pop(0)
-        
+
         if topic:
             self.last_topic = topic
             self.topic_history.append(topic)

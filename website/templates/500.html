@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block title %}500 - Server Error{% endblock %}
+
+{% block content %}
+<div class="container">
+    <section class="hero" style="padding: 4rem 0;">
+        <h1>500</h1>
+        <p>Oops! Something went wrong on our end.</p>
+        <div style="margin-top: 2rem;">
+            <a href="{{ url_for('home') }}" class="btn btn-primary">Go Home</a>
+        </div>
+    </section>
+</div>
+{% endblock %} 
