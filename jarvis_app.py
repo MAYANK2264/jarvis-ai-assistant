@@ -5,6 +5,7 @@ from datetime import datetime
 from dotenv import load_dotenv
 from PySide6.QtWidgets import QApplication, QStyle
 from plyer import notification
+from commands.offline_ai import chat_with_gpt
 import wikipedia
 import pyjokes
 import urllib3
@@ -139,7 +140,7 @@ class JarvisCore:
             if any(x in command for x in ["exit", "quit", "stop", "goodbye"]):
                 return "Goodbye! Have a nice day."
 
-            return "I'm not sure how to help with that. Try asking 'what can you do'."
+            return chat_with_gpt(command)
 
         except Exception as e:
             logger.error(f"Error processing command: {str(e)}", exc_info=True)

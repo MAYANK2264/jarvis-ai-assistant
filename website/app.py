@@ -6,6 +6,8 @@ from datetime import datetime
 # Add the parent directory to sys.path to import from commands
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+from commands.offline_ai import chat_with_gpt
+
 app = Flask(__name__)
 
 # Create static and templates directories if they don't exist
@@ -41,11 +43,10 @@ def install():
 @app.route('/api/demo', methods=['POST'])
 def demo_api():
     command = request.json.get('command', '')
-    # Here you would integrate with your Jarvis AI
-    # For demo purposes, we'll return a mock response
+    ai_response = chat_with_gpt(command)
     return jsonify({
         'status': 'success',
-        'response': f'Demo response for command: {command}'
+        'response': ai_response
     })
 
 # Error handlers

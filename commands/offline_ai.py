@@ -291,8 +291,30 @@ def chat_with_gpt(command):
 def get_online_ai_response(command):
     """Get response from online AI model"""
     try:
-        # Implement your online AI API call here
-        # For now, we'll use the offline response
+        # TODO: Implement actual online AI API call here
+        # Example structure:
+        # api_key = os.getenv("YOUR_PREFERRRED_AI_SERVICE_API_KEY")
+        # if not api_key:
+        #     print("API key for online AI service not found.")
+        #     raise ValueError("API key missing")
+        #
+        # headers = {"Authorization": f"Bearer {api_key}"}
+        # payload = {"prompt": command, "max_tokens": 150} # Adjust payload as per API requirements
+        #
+        # # Replace with the actual API endpoint
+        # response = requests.post("YOUR_AI_SERVICE_ENDPOINT", json=payload, headers=headers, timeout=10)
+        # response.raise_for_status() # Raise an exception for HTTP errors
+        #
+        # data = response.json()
+        # # Process `data` to extract the AI's response text, e.g.:
+        # # ai_text_response = data.get("choices")[0].get("text").strip()
+        # # if ai_text_response:
+        # #     return ai_text_response
+        # # else:
+        # #     raise ValueError("No response text found in API output")
+
+        # Fallback to offline if online call is not implemented or fails before being implemented
+        print("Online AI call not implemented. Falling back to offline mode.")
         return chat_with_gpt_offline(command)
     except Exception as e:
         print(f"Error with online model: {e}")
